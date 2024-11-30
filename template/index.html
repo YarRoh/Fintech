@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .link {
+            display: block;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .link:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Калькулятор для ИП</h1>
+        <a href="/calculate_ip" class="link">Расчет зарплаты и налогов для ИП</a>
+        <a href="/calculate_employees" class="link">Расчет зарплаты и налогов для сотрудников</a>
+        <a href="/calculate_kpi" class="link">Расчет KPI за полгода</a>
+        <a href="/calculate_social_tax" class="link">Расчет социального налога за полгода</a>
+    </div>
+</body>
+</html>

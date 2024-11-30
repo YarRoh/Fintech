@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчет KPI за полгода</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        input[type="number"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .result p {
+            margin: 10px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Расчет KPI за полгода</h1>
+        <form id="kpiForm">
+            <label for="income">Доход:</label>
+            <input type="number" id="income" name="income" required>
+            <br>
+            <label for="expenses">Расходы:</label>
+            <input type="number" id="expenses" name="expenses" required>
+            <br>
+            <button type="submit">Рассчитать</button>
+        </form>
+
+        <h2>Результаты:</h2>
+        <div id="results"></div>
+
+        <script>
+            document.getElementById('kpiForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+
+                const response = await fetch('/calculate_kpi', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        income: parseFloat(data.income),
+                        expenses: parseFloat(data.expenses)
+                    })
+                });
+
+                const result = await response.json();
+                document.getElementById('results').innerHTML = `
+                    <p>KPI за полгода: ${result.kpi.toFixed(2)}</p>
+                `;
+            };
+        </script>
+    </div>
+</body>
+</html>
