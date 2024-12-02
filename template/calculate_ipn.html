@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расчет налогов для ИП</title>
+    <title>Расчет ИПН</title>
     <style>
             body {
                 font-family: Arial, sans-serif;
@@ -58,10 +58,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>Расчет налогов для ИП</h1>
-        <form id="ipForm">
-            <label for="income">Доход:</label>
-            <input type="number" id="income" name="income" required>
+        <h1>Расчет ИПН</h1>
+        <form id="ipnForm">
+            <label for="turnover">Оборот:</label>
+            <input type="number" id="turnover" name="turnover" required>
             
             <button type="submit">Рассчитать</button>
         </form>
@@ -70,26 +70,23 @@
         <div id="results"></div>
 
         <script>
-            document.getElementById('ipForm').onsubmit = async (e) => {
+            document.getElementById('ipnForm').onsubmit = async (e) => {
                 e.preventDefault();
-                const income = parseFloat(document.getElementById('income').value);
+                const turnover = parseFloat(document.getElementById('turnover').value);
 
-                const response = await fetch('/calculate_ip', {
+                const response = await fetch('/calculate_ipn', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        income: income
+                        turnover: turnover
                     })
                 });
 
                 const result = await response.json();
                 document.getElementById('results').innerHTML = `
-                    <p>ОПВ: ${result.opv.toFixed(2)} тенге</p>
-                    <p>ВОСМС: ${result.vosms.toFixed(2)} тенге</p>
-                    <p>СО: ${result.socialTax.toFixed(2)} тенге</p>
-                    <p>ОПВР: ${result.pensionTax.toFixed(2)} тенге</p>
+                    <p>ИПН: ${result.ipn.toFixed(2)} тенге</p>
                 `;
             };
         </script>

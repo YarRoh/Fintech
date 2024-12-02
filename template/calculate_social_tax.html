@@ -3,69 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расчет социального налога за полгода</title>
+    <title>Расчет социального налога</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-bottom: 10px;
-            color: #555;
-        }
-        input[type="number"] {
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px;
-            background-color: #007BFF;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .result {
-            margin-top: 20px;
-        }
-        .result p {
-            margin: 10px 0;
-            color: #555;
-        }
-    </style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 20px;
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+            }
+            label {
+                margin-bottom: 10px;
+                color: #555;
+            }
+            input[type="number"] {
+                padding: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            button {
+                padding: 10px;
+                background-color: #007BFF;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #0056b3;
+            }
+            .result {
+                margin-top: 20px;
+            }
+            .result p {
+                margin: 10px 0;
+                color: #555;
+            }
+        </style>
 </head>
 <body>
     <div class="container">
-        <h1>Расчет социального налога за полгода</h1>
+        <h1>Расчет социального налога</h1>
         <form id="socialTaxForm">
-            <label for="income">Доход:</label>
-            <input type="number" id="income" name="income" required>
-            <br>
-            <label for="expenses">Расходы:</label>
-            <input type="number" id="expenses" name="expenses" required>
-            <br>
+            <label for="turnover">Оборот:</label>
+            <input type="number" id="turnover" name="turnover" required>
+            
+            <label for="socialTax">Социальные отчисления:</label>
+            <input type="number" id="socialTax" name="socialTax" required>
+            
             <button type="submit">Рассчитать</button>
         </form>
 
@@ -75,23 +75,23 @@
         <script>
             document.getElementById('socialTaxForm').onsubmit = async (e) => {
                 e.preventDefault();
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData.entries());
+                const turnover = parseFloat(document.getElementById('turnover').value);
+                const socialTax = parseFloat(document.getElementById('socialTax').value);
 
-                const response = await fetch('/calculate_social_tax', {
+                const response = await fetch('/calculate_cn', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        income: parseFloat(data.income),
-                        expenses: parseFloat(data.expenses)
+                        turnover: turnover,
+                        socialTax: socialTax
                     })
                 });
 
                 const result = await response.json();
                 document.getElementById('results').innerHTML = `
-                    <p>Социальный налог за полгода: ${result.socialTax.toFixed(2)} тенге.</p>
+                    <p>Социальный налог: ${result.socialTax.toFixed(2)} тенге</p>
                 `;
             };
         </script>

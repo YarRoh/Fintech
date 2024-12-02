@@ -51,11 +51,11 @@ func main() {
 		c.HTML(http.StatusOK, "calculate_employees.html", nil)
 	})
 
-	router.GET("/calculate_kpi", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "calculate_kpi.html", nil)
+	router.GET("/calculate_ipn", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "calculate_ipn.html", nil)
 	})
 
-	router.GET("/calculate_social_tax", func(c *gin.Context) {
+	router.GET("/calculate_cn", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "calculate_social_tax.html", nil)
 	})
 
@@ -80,13 +80,13 @@ func main() {
 		}
 		
 		// СоцОтчисления
-		socialTax := income * 0.35
+		socialTax := income * 0.035
 		if socialTax < 2975 {
 			socialTax = 2975
 		}
 		
 		//Обязательные пенсионные платежи работодателя
-		pensionTax := income * 0.15
+		pensionTax := income * 0.015
 
 		c.JSON(http.StatusOK, gin.H{
 			"opv" : opv,
@@ -112,7 +112,7 @@ func main() {
 			if req.Employees == Resident {
 				ipn = (income - opv - MRP*14) * 0.1
 			} else if req.Employees == NonResident {
-				ipn = income * 0.15
+				ipn = income * 0.1
 			} else {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid residency status"})
 				return
@@ -122,9 +122,9 @@ func main() {
 		
 		
 		//ОПВР
-		opvr := income * 0.15
+		opvr := income * 0.015
 		//СО
-		so := income * 0.35
+		so := income * 0.035
 		//ООСМС
 		oosms := income * 0.03
 		
@@ -150,7 +150,7 @@ func main() {
 		
 		turnover := req.Turnover
 		
-		ipn := turnover * 0.15
+		ipn := turnover * 0.015
 		c.JSON(http.StatusOK, gin.H{
 			"ipn" : ipn,
 		})
@@ -165,7 +165,10 @@ func main() {
 		
 		turnover := req.Turnover
 		//Социальный налог за полгода
-		socialTax := turnover * 0.15 - req.SocialTax
+		socialTax := (turnover * 0.015) - req.SocialTax
+		if socialTax < 0 {
+			socialTax = 0
+		}
 		c.JSON(http.StatusOK, gin.H{
 			"socialTax": socialTax,
 		})
