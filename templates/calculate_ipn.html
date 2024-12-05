@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчет ИПН</title>
+    <link type="image/x-icon" href="static/img/logo.ico" rel="icon">
+    <link type="text/css" href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" href="static/icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link type="text/css" href="static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="#" alt="FinTech" width="40" height="40">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/calculate_ip">Расчет налогов для ИП</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/calculate_employees">Расчет зарплаты и налогов для сотрудников</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/calculate_ipn">Расчет ИПН</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/calculate_cn">Расчет социального налога</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-md-7 col-sm-12 color-fill c2">
+                <h1 class="mb-4">Расчет ИПН</h1>
+                <form id="ipnForm">
+                    <div class="mb-3">
+                        <label class="form-label" for="turnover">Оборот:</label>
+                        <input class="form-control" type="number" id="turnover" name="turnover" required>
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-glow" type="submit">Рассчитать</button>
+                    </div>
+                </form>
+
+                <h4 class="mb-3">Результаты:</h4>
+                <div class="mb-3" id="results"></div>
+            </div>
+
+            <div class="col-md-5 col-sm-12">
+                <h3 class="text-center mb-4 c1">2024 год / МЗП = 85 000 тенге</h3>
+                    <div class="table-responsive ">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Предел дохода</th>
+                                    <th>Сумма</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>min нет<br>max от 50 МЗП (4,25 млн тенге)</td>
+                                    <td>max = 425 000 тенге</td>
+                                </tr>
+                                <tr>
+                                    <td>min от 1 МЗП (85 000 тенге) и<br>max от 7 МЗП (595 000 тенге)</td>
+                                    <td>min = 2 975 тенге;<br>max = 20 825 тенге</td>
+                                </tr>
+                                <tr>
+                                    <td>min нет<br>max от 10 МЗП (850 000 тенге)</td>
+                                    <td>max = 17 000 тенге</td>
+                                </tr>
+                                <tr>
+                                    <td>min нет<br>max от 10 МЗП (850 000 тенге)</td>
+                                    <td>max = 25 500 тенге</td>
+                                </tr>
+                                <tr>
+                                    <td>Фиксированная сумма дохода 1,4 МЗП (119 000 тенге)</td>
+                                    <td>5 950 тенге</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('ipnForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const turnover = parseFloat(document.getElementById('turnover').value);
+
+            const response = await fetch('/calculate_ipn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    turnover: turnover
+                })
+            });
+
+            const result = await response.json();
+            document.getElementById('results').innerHTML = `
+                <p>ИПН: ${result.ipn.toFixed(2)} тенге</p>
+            `;
+        };
+    </script>
+    <script src="static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

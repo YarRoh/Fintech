@@ -1,15 +1,17 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
+
 type ResidencyStatus string
 
 const (
-	MRP = 3692
-	Resident  ResidencyStatus = "Резидент"
+	MRP                         = 3692
+	Resident    ResidencyStatus = "Резидент"
 	NonResident ResidencyStatus = "Нерезидент"
 )
 
@@ -23,11 +25,11 @@ func LoggerMiddleware(c *gin.Context) {
 }
 
 type SalaryRequest struct {
-	Income    float64 `json:"income"`
-	Expenses  float64 `json:"expenses"`
+	Income    float64         `json:"income"`
+	Expenses  float64         `json:"expenses"`
 	Employees ResidencyStatus `json:"employees"`
-	Turnover  float64 `json:"turnover"`
-	SocialTax float64 `json:"socialTax"`
+	Turnover  float64         `json:"turnover"`
+	SocialTax float64         `json:"socialTax"`
 }
 
 func main() {
@@ -35,7 +37,7 @@ func main() {
 	router.Static("/static", "./static")
 	router.Use(LoggerMiddleware)
 
-	router.LoadHTMLGlob("template/*")
+	router.LoadHTMLGlob("templates/*")
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
@@ -67,32 +69,31 @@ func main() {
 		}
 		// Пример расчета для ИП
 		income := req.Income
-		
-		
+
 		opv := income * 0.1 // ОПВ 10%
 		if opv > 425000 {
 			opv = 425000
 		}
-		
-		vosms := income *0.05
-		if vosms < 5950{
+
+		vosms := income * 0.05
+		if vosms < 5950 {
 			vosms = 5950
 		}
-		
+
 		// СоцОтчисления
 		socialTax := income * 0.035
 		if socialTax < 2975 {
 			socialTax = 2975
 		}
-		
+
 		//Обязательные пенсионные платежи работодателя
 		pensionTax := income * 0.015
 
 		c.JSON(http.StatusOK, gin.H{
-			"opv" : opv,
-			"vosms" : vosms,
-			"socialTax":              socialTax,
-			"pensionTax":             pensionTax,
+			"opv":        opv,
+			"vosms":      vosms,
+			"socialTax":  socialTax,
+			"pensionTax": pensionTax,
 		})
 	})
 
@@ -106,37 +107,36 @@ func main() {
 		income := req.Income
 		//OПВ
 		opv := income * 0.1
-		
+
 		//ИПН
 		var ipn float64
-			if req.Employees == Resident {
-				ipn = (income - opv - MRP*14) * 0.1
-			} else if req.Employees == NonResident {
-				ipn = income * 0.1
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid residency status"})
-				return
-			}
+		if req.Employees == Resident {
+			ipn = (income - opv - MRP*14) * 0.1
+		} else if req.Employees == NonResident {
+			ipn = income * 0.1
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid residency status"})
+			return
+		}
 		//ВОСМС
 		vosms := income * 0.02
-		
-		
+
 		//ОПВР
 		opvr := income * 0.015
 		//СО
 		so := income * 0.035
 		//ООСМС
 		oosms := income * 0.03
-		
+
 		//Сумма на руки
 		netIncome := income - opv - ipn - vosms
 		c.JSON(http.StatusOK, gin.H{
-			"opv": opv,
-			"ipn": ipn,
-			"vosms": vosms,
-			"opvr": opvr,
-			"so": so,
-			"oosms": oosms,
+			"opv":       opv,
+			"ipn":       ipn,
+			"vosms":     vosms,
+			"opvr":      opvr,
+			"so":        so,
+			"oosms":     oosms,
 			"netIncome": netIncome,
 		})
 	})
@@ -147,12 +147,12 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		
+
 		turnover := req.Turnover
-		
+
 		ipn := turnover * 0.015
 		c.JSON(http.StatusOK, gin.H{
-			"ipn" : ipn,
+			"ipn": ipn,
 		})
 	})
 
@@ -162,7 +162,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		
+
 		turnover := req.Turnover
 		//Социальный налог за полгода
 		socialTax := (turnover * 0.015) - req.SocialTax
@@ -173,10 +173,10 @@ func main() {
 			"socialTax": socialTax,
 		})
 	})
-	
-	router.POST("/requsits_paymant", func(c *gin.Context){
-		
+
+	router.POST("/requsits_paymant", func(c *gin.Context) {
+
 	})
-	
+
 	router.Run(":8080")
 }
