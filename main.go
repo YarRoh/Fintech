@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -70,15 +71,13 @@ func main() {
 		// Пример расчета для ИП
 		income := req.Income
 
-		opv := income * 0.1 // ОПВ 10%
+		opv := income * 0.1
 		if opv > 425000 {
 			opv = 425000
 		}
 
-		vosms := income * 0.05
-		if vosms < 5950 {
-			vosms = 5950
-		}
+		vosms := 5950
+		
 
 		// СоцОтчисления
 		socialTax := income * 0.035
@@ -107,19 +106,19 @@ func main() {
 		income := req.Income
 		//OПВ
 		opv := income * 0.1
-
+		//ВОСМС
+		vosms := income * 0.02
 		//ИПН
 		var ipn float64
 		if req.Employees == Resident {
-			ipn = (income - opv - MRP*14) * 0.1
+			ipn = (income - opv- vosms - MRP*14) * 0.1
+			ipn = math.Round(ipn)
 		} else if req.Employees == NonResident {
 			ipn = income * 0.1
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid residency status"})
 			return
 		}
-		//ВОСМС
-		vosms := income * 0.02
 
 		//ОПВР
 		opvr := income * 0.015
@@ -172,10 +171,6 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"socialTax": socialTax,
 		})
-	})
-
-	router.POST("/requsits_paymant", func(c *gin.Context) {
-
 	})
 
 	router.Run(":8080")
