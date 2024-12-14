@@ -47,7 +47,7 @@
                 <form id="ipForm">
                     <div class="mb-3">
                         <label class="form-label" for="income">Доход:</label>
-                        <input class="form-control" type="number" id="income" name="income" required>
+                        <input class="form-control" type="text" id="income" name="income" required>
                     </div>
                     <div class="mb-3">
                         <button class="btn btn-glow" type="submit">Рассчитать</button>
@@ -141,26 +141,44 @@
     </footer>
 
     <script>
+        document.getElementById('income').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (!value) return;
+    
+            e.target.value = new Intl.NumberFormat('ru-RU').format(value);
+        });
+    
         document.getElementById('ipForm').onsubmit = async (e) => {
             e.preventDefault();
-            const income = parseFloat(document.getElementById('income').value);
-
+            const incomeField = document.getElementById('income');
+            const income = parseFloat(incomeField.value.replace(/\s/g, ''));
+    
+            if (isNaN(income) || income <= 0) {
+                alert("Введите корректное значение дохода.");
+                return;
+            }
             const response = await fetch('/calculate_ip', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    income: income
-                })
+                body: JSON.stringify({ income: income })
             });
-
+    
+            if (!response.ok) {
+                const error = await response.json();
+                document.getElementById('results').innerHTML = `
+                    <p class="text-danger">Ошибка: ${error.error}</p>
+                `;
+                return;
+            }
+    
             const result = await response.json();
             document.getElementById('results').innerHTML = `
-                <p>ОПВ: ${result.opv.toFixed(2)} тенге</p>
-                <p>ВОСМС: ${result.vosms.toFixed(2)} тенге</p>
-                <p>СО: ${result.socialTax.toFixed(2)} тенге</p>
-                <p>ОПВР: ${result.pensionTax.toFixed(2)} тенге</p>
+                <p>ОПВ: ${result.opv} тенге</p>
+                <p>ВОСМС: ${result.vosms} тенге</p>
+                <p>СО: ${result.socialTax} тенге</p>
+                <p>ОПВР: ${result.pensionTax} тенге</p>
             `;
         };
     </script>

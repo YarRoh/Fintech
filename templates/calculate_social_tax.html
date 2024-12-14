@@ -46,11 +46,11 @@
                 <form id="socialTaxForm">
                     <div class="mb-3">
                         <label class="form-label" for="turnover">Оборот:</label>
-                        <input class="form-control" type="number" id="turnover" name="turnover" required>
+                        <input class="form-control" type="text" id="turnover" name="turnover" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="socialTax">Социальные отчисления:</label>
-                        <input class="form-control" type="number" id="socialTax" name="socialTax" required>
+                        <input class="form-control" type="text" id="socialTax" name="socialTax" required>
                     </div>
                     <div class="mb-3">
                         <button class="btn btn-glow" type="submit">Рассчитать</button>
@@ -145,27 +145,95 @@
     </footer>
 
     <script>
-        document.getElementById('socialTaxForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const turnover = parseFloat(document.getElementById('turnover').value);
-            const socialTax = parseFloat(document.getElementById('socialTax').value);
+          // Форматирует число с разрядностью
+          function formatNumber(num) {
+              return num.toLocaleString("ru-RU", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+          }
+          
+          // Удаляет пробелы и преобразует строку в число
+          function parseNumber(numStr) {
+              if (!numStr) return NaN; // Если строка пустая, возвращаем NaN
+              return parseFloat(numStr.replace(/\s/g, '').replace(',', '.')); // Удаляем пробелы и заменяем запятую на точку
+          }
+          
+          // Форматирование ввода с разрядностью
+          function handleInputFormatting(e) {
+              const inputField = e.target;
+          
+              // Сохраняем текущую позицию курсора
+              const cursorPosition = inputField.selectionStart;
+          
+              // Удаляем недопустимые символы (всё, кроме цифр, пробелов, запятой, точки)
+              const sanitizedValue = inputField.value.replace(/[^0-9,.\s]/g, '');
+          
+              // Парсим значение как число
+              const parsedValue = parseNumber(sanitizedValue);
+          
+              // Если значение корректное, форматируем его
+              if (!isNaN(parsedValue)) {
+                  const formattedValue = formatNumber(parsedValue);
+                  inputField.value = formattedValue;
+          
+                  // Восстанавливаем позицию курсора
+                  const difference = formattedValue.length - sanitizedValue.length;
+                  const newCursorPosition = cursorPosition + difference;
+                  inputField.setSelectionRange(newCursorPosition, newCursorPosition);
+              } else {
+                  inputField.value = ''; // Если значение некорректное, очищаем поле
+              }
+          }
+          
+          // Обработчики ввода для каждого поля
+          document.getElementById('turnover').addEventListener('input', handleInputFormatting);
+          document.getElementById('socialTax').addEventListener('input', handleInputFormatting);
+          
+          // Обработка отправки формы
+          document.getElementById("socialTaxForm").onsubmit = async (e) => {
+              e.preventDefault();
+          
+              const turnoverInput = document.getElementById("turnover");
+              const socialTaxInput = document.getElementById("socialTax");
+          
+              // Преобразуем значения в числа
+              const turnover = parseNumber(turnoverInput.value);
+              const socialTax = parseNumber(socialTaxInput.value);
+          
+              // Проверяем корректность данных
+              if (isNaN(turnover) || turnover <= 0) {
+                  alert("Введите корректный оборот больше 0!");
+                  turnoverInput.focus();
+                  return;
+              }
+          
+              if (isNaN(socialTax) || socialTax < 0) {
+                  alert("Введите корректные социальные отчисления!");
+                  socialTaxInput.focus();
+                  return;
+              }
+          
+              // Отправляем данные на сервер
+              try {
+                  const response = await fetch("/calculate_cn", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ turnover, socialTax }),
+                  });
+          
+                  if (response.ok) {
+                      const data = await response.json();
+                      const formattedResult = formatNumber(data.socialTax);
+                      document.getElementById("results").innerHTML = `
+                          <p>Социальный налог: ${formattedResult} тенге</p>
+                      `;
+                  } else {
+                      alert("Произошла ошибка при расчёте. Проверьте данные.");
+                  }
+              } catch (err) {
+                  alert("Ошибка связи с сервером. Попробуйте снова.");
+                  console.error(err);
+              }
+          };
 
-            const response = await fetch('/calculate_cn', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    turnover: turnover,
-                    socialTax: socialTax
-                })
-            });
-
-            const result = await response.json();
-            document.getElementById('results').innerHTML = `
-                <p>Социальный налог: ${result.socialTax.toFixed(2)} тенге</p>
-            `;
-        };
     </script>
     <script src="static/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -46,7 +46,7 @@
                 <form id="employeesForm">
                     <div class="mb-3">
                         <label class="form-label" for="income">Доход:</label>
-                        <input class="form-control" type="number" id="income" name="income" required>
+                        <input class="form-control" type="text" id="income" name="income" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="employees">Статус резидентства:</label>
@@ -62,6 +62,7 @@
                 <h4 class="mb-3">Результаты:</h4>
                 <div class="mb-3" id="results"></div>
             </div>
+
 
             <div class="col-md-5 col-sm-12">
                 <h3 class="text-center mb-4 c1">2024 год / МЗП = 85 000 тенге</h3>
@@ -148,33 +149,78 @@
     </footer>
 
     <script>
-        document.getElementById('employeesForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const income = parseFloat(document.getElementById('income').value);
-            const employees = document.getElementById('employees').value;
-            
-            const response = await fetch('/calculate_employees', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    income: income,
-                    employees: employees
-                })
-            });
-            
-            const result = await response.json();
-            document.getElementById('results').innerHTML = `
-                <p>ОПВ: ${result.opv.toFixed(2)} тенге</p>
-                <p>ИПН: ${result.ipn.toFixed(2)} тенге</p>
-                <p>ВОСМС: ${result.vosms.toFixed(2)} тенге</p>
-                <p>ОПВР: ${result.opvr.toFixed(2)} тенге</p>
-                <p>СО: ${result.so.toFixed(2)} тенге</p>
-                <p>ООСМС: ${result.oosms.toFixed(2)} тенге</p>
-                <p>Сумма на руки: ${result.netIncome.toFixed(2)} тенге</p>
-            `;
-        };
+            // Форматирует число с разрядностью
+            function formatNumber(num) {
+                return num.toLocaleString("ru-RU", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            }
+    
+            // Удаляет пробелы перед преобразованием в число
+            function parseNumber(numStr) {
+                return parseFloat(numStr.replace(/\s/g, '').replace(',', '.'));
+            }
+    
+            // Форматирование ввода с разрядностью
+            function handleInputFormatting(e) {
+                const inputField = e.target;
+    
+                // Удаляем лишние символы
+                const sanitizedValue = inputField.value.replace(/[^0-9,.\s]/g, '');
+                const parsedValue = parseNumber(sanitizedValue);
+    
+                // Форматируем только если число корректное
+                if (!isNaN(parsedValue)) {
+                    inputField.value = formatNumber(parsedValue);
+                } else {
+                    inputField.value = ''; // Очищаем, если некорректное значение
+                }
+            }
+    
+            // Обработчик ввода для поля "Доход"
+            document.getElementById('income').addEventListener('input', handleInputFormatting);
+    
+            // Обработка отправки формы
+            document.getElementById('employeesForm').onsubmit = async (e) => {
+                e.preventDefault();
+    
+                const incomeInput = document.getElementById("income");
+                const income = parseNumber(incomeInput.value);
+                const employees = document.getElementById("employees").value;
+    
+                if (isNaN(income) || income <= 0) {
+                    alert("Введите корректный доход больше 0!");
+                    incomeInput.focus();
+                    return;
+                }
+    
+                // Отправляем данные на сервер
+                try {
+                    const response = await fetch("/calculate_employees", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ income, employees }),
+                    });
+    
+                    if (response.ok) {
+                        const result = await response.json();
+    
+                        // Форматируем результаты
+                        document.getElementById("results").innerHTML = `
+                            <p>ОПВ: ${formatNumber(result.opv)} тенге</p>
+                            <p>ИПН: ${formatNumber(result.ipn)} тенге</p>
+                            <p>ВОСМС: ${formatNumber(result.vosms)} тенге</p>
+                            <p>ОПВР: ${formatNumber(result.opvr)} тенге</p>
+                            <p>СО: ${formatNumber(result.so)} тенге</p>
+                            <p>ООСМС: ${formatNumber(result.oosms)} тенге</p>
+                            <p>Сумма на руки: ${formatNumber(result.netIncome)} тенге</p>
+                        `;
+                    } else {
+                        alert("Произошла ошибка при расчёте. Проверьте данные.");
+                    }
+                } catch (err) {
+                    alert("Ошибка связи с сервером. Попробуйте снова.");
+                    console.error(err);
+                }
+            };
     </script>
     <script src="static/js/bootstrap.bundle.min.js"></script>
 </body>

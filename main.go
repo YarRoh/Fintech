@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"golang.org/x/text/message"
+    "golang.org/x/text/language"
 )
 
 type ResidencyStatus string
@@ -15,6 +16,10 @@ const (
 	Resident    ResidencyStatus = "Резидент"
 	NonResident ResidencyStatus = "Нерезидент"
 )
+func formatNumber(num float64) string {
+	p := message.NewPrinter(language.Russian)
+	return p.Sprintf("%.2f", num)
+}
 
 func LoggerMiddleware(c *gin.Context) {
 	method := c.Request.Method
@@ -42,8 +47,8 @@ func main() {
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
-			"Name": "Guest",
-		})
+					"Name": "Guest",
+				})
 	})
 
 	router.GET("/calculate_ip", func(c *gin.Context) {
@@ -68,6 +73,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		
 		// Пример расчета для ИП
 		income := req.Income
 
@@ -75,11 +81,8 @@ func main() {
 		if opv > 425000 {
 			opv = 425000
 		}
+		vosms := 5950.0
 
-		vosms := 5950
-		
-
-		// СоцОтчисления
 		socialTax := income * 0.035
 		if socialTax < 2975 {
 			socialTax = 2975
@@ -87,12 +90,16 @@ func main() {
 
 		//Обязательные пенсионные платежи работодателя
 		pensionTax := income * 0.015
-
+		formattedopv := formatNumber(opv)
+		formattedvosms := formatNumber(vosms)
+		formatedsocialTax := formatNumber(socialTax)
+		formatedpensionTax := formatNumber(pensionTax)
+		
 		c.JSON(http.StatusOK, gin.H{
-			"opv":        opv,
-			"vosms":      vosms,
-			"socialTax":  socialTax,
-			"pensionTax": pensionTax,
+			"opv":        formattedopv,
+			"vosms":      formattedvosms,
+			"socialTax":  formatedsocialTax,
+			"pensionTax": formatedpensionTax,
 		})
 	})
 
@@ -129,14 +136,23 @@ func main() {
 
 		//Сумма на руки
 		netIncome := income - opv - ipn - vosms
+		
+		formattedopv := formatNumber(opv)
+		formattedvosms := formatNumber(vosms)
+		formattedipn := formatNumber(ipn)
+		formattedopvr := formatNumber(opvr)
+		formattedso := formatNumber(so)
+		formattedoosms := formatNumber(oosms)
+		formattednetIncome := formatNumber(netIncome)
+		
 		c.JSON(http.StatusOK, gin.H{
-			"opv":       opv,
-			"ipn":       ipn,
-			"vosms":     vosms,
-			"opvr":      opvr,
-			"so":        so,
-			"oosms":     oosms,
-			"netIncome": netIncome,
+			"opv":       formattedopv,
+			"ipn":       formattedipn,
+			"vosms":     formattedvosms,
+			"opvr":      formattedopvr,
+			"so":        formattedso,
+			"oosms":     formattedoosms,
+			"netIncome": formattednetIncome,
 		})
 	})
 
@@ -159,19 +175,23 @@ func main() {
 		var req SalaryRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			fmt.Println("Ошибка привязки JSON:", err) // Логирование ошибки
 			return
 		}
 
 		turnover := req.Turnover
-		//Социальный налог за полгода
 		socialTax := (turnover * 0.015) - req.SocialTax
 		if socialTax < 0 {
 			socialTax = 0
 		}
+		
 		c.JSON(http.StatusOK, gin.H{
-			"socialTax": socialTax,
+			"socialTax": formatNumber(socialTax), // Форматируем ответ
 		})
-	})
+})
+
 
 	router.Run(":8080")
 }
+
+

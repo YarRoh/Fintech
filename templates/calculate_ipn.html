@@ -46,7 +46,7 @@
                 <form id="ipnForm">
                     <div class="mb-3">
                         <label class="form-label" for="turnover">Оборот:</label>
-                        <input class="form-control" type="number" id="turnover" name="turnover" required>
+                        <input class="form-control" type="text" id="turnover" name="turnover" required>
                     </div>
                     <div class="mb-3">
                         <button class="btn btn-glow" type="submit">Рассчитать</button>
@@ -142,24 +142,59 @@
     </footer>
     
     <script>
-        document.getElementById('ipnForm').onsubmit = async (e) => {
+        // Форматирует число с разрядностью
+        function formatNumber(num) {
+            return num.toLocaleString("ru-RU", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+        
+        // Удаляет пробелы перед парсингом числа
+        function parseNumber(numStr) {
+            return parseFloat(numStr.replace(/\s/g, '').replace(',', '.'));
+        }
+        
+        // Ограничение ввода: только цифры, запятая или точка
+        document.getElementById('turnover').addEventListener('input', function (e) {
+            const value = e.target.value;
+        
+            // Удаляем всё, кроме цифр, пробелов, запятой или точки
+            const sanitizedValue = value.replace(/[^0-9,.\s]/g, '');
+        
+            // Парсим значение и форматируем его обратно
+            const parsedValue = parseNumber(sanitizedValue);
+            e.target.value = isNaN(parsedValue) ? '' : formatNumber(parsedValue);
+        });
+        
+        // Обработка отправки формы
+        document.getElementById("ipnForm").onsubmit = async (e) => {
             e.preventDefault();
-            const turnover = parseFloat(document.getElementById('turnover').value);
-
-            const response = await fetch('/calculate_ipn', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    turnover: turnover
-                })
-            });
-
-            const result = await response.json();
-            document.getElementById('results').innerHTML = `
-                <p>ИПН: ${result.ipn.toFixed(2)} тенге</p>
-            `;
+        
+            const turnoverInput = document.getElementById("turnover");
+            const turnover = parseNumber(turnoverInput.value);
+        
+            if (isNaN(turnover) || turnover <= 0) {
+                alert("Введите корректное число больше 0!");
+                turnoverInput.focus();
+                return;
+            }
+        
+            // Отправка запроса на сервер
+            try {
+                const response = await fetch("/calculate_ipn", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ turnover }),
+                });
+        
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById("results").innerHTML = `<p>ИПН: ${data.ipn} тенге</p>`;
+                } else {
+                    alert("Произошла ошибка при расчёте. Проверьте данные.");
+                }
+            } catch (err) {
+                alert("Ошибка связи с сервером. Попробуйте снова.");
+                console.error(err);
+            }
         };
     </script>
     <script src="static/js/bootstrap.bundle.min.js"></script>
